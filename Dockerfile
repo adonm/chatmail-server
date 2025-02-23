@@ -4,18 +4,11 @@ FROM debian:bookworm-slim
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install necessary packages
-RUN apt-get update && apt-get install -y \
-    curl \
-    rsync \
-    ssh \
-    python3 \
-    python3-venv \
-    python3-pip \
-    openssh-client \
-    openssh-server \
-    nsd \
-    && apt-get clean
+ADD https://github.com/gdraheim/docker-systemctl-replacement/raw/refs/heads/master/files/docker/systemctl3.py /usr/bin/systemctl
+
+# Install necessary packages and set up the environment
+RUN apt-get update && apt-get install -y python3 python3-dev build-essential \
+    && apt-get clean && chmod 755 /usr/bin/systemctl
 
 # Set up the working directory
 WORKDIR /app
@@ -29,24 +22,14 @@ ENV PATH="/app/venv/bin:${PATH}"
 # Configure cmdeploy to target local system
 ENV CMDEPLOY_LOCAL_BUILD="True"
 
-# Run the initialization script
-RUN scripts/initenv.sh
+# Prepare cmdeploy
+RUN scripts/initenv.sh \
+    && cmdeploy fmt -v \
+    && pytest --pyargs cmdeploy \
+    && cmdeploy init chatmail.replaceme.local
 
-# Patch systemd
-ADD https://github.com/gdraheim/docker-systemctl-replacement/raw/refs/heads/master/files/docker/systemctl3.py /usr/bin/systemctl
-RUN chmod 755 /usr/bin/systemctl
+# Run cmdeploy against local target
+RUN cmdeploy run --verbose
 
-# Run formatting checks
-RUN cmdeploy fmt -v
-
-# Run offline tests
-RUN pytest --pyargs cmdeploy
-
-# Initialize the deployment
-RUN cmdeploy init chat.localhost
-
-# Run the deployment (likely will fail need to adjust for container)
-RUN cmdeploy run --verbose || true
-
-# Default command to run the container (need to flip to start systemd)
+# Default command to run the container (need to flip to use entrypoint to reconfigure and start systemd)
 CMD ["bash"]

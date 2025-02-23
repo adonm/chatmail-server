@@ -15,13 +15,15 @@ after which the initially specified password is required for using them.
 
 ## Container build process
 
-This repo now has a [Dockerfile](Dockerfile) that can be used with `just build` to build a monolithic container for a chatmail server.
+This repo now has a [Dockerfile](Dockerfile) that can be used with `just build` to build a monolithic container for a chatmail server. `just test` currently just runs trivy tests, should run delta chat client tests in the future.
 
 Outstanding items for the container build:
 
 - TODO: Setup entrypoint that reads and configures services dependent on domain name
 - TODO: Configure volumes so container storage can easily be backed up and restored
 - TODO: Make cert management configurable (may be easier to use [cert-manager](https://cert-manager.io/) in k8s environments)
+- TODO: Automate trivy container vuln scans
+- TODO: Automate weekly build/push to github container registry
 
 ## Deploying your own chatmail server 
 
