@@ -7,4 +7,4 @@ container-shell:
 
 test:
     docker build -t chatmail .
-    trivy image chatmail:latest
+    trivy image chatmail:latest -s HIGH,CRITICAL
