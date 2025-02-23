@@ -1,5 +1,5 @@
 build:
-    docker build -t chatmail .
+    docker build --pull -t chatmail .
 
 container-shell:
     just build
