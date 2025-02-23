@@ -13,6 +13,16 @@ for use by [Delta Chat apps](https://delta.chat).
 Chatmail accounts are automatically created by a first login, 
 after which the initially specified password is required for using them. 
 
+## Container build process
+
+This repo now has a [Dockerfile](Dockerfile) that can be used with `just build` to build a monolithic container for a chatmail server.
+
+Outstanding items for the container build:
+
+- TODO: Setup entrypoint that reads and configures services dependent on domain name
+- TODO: Configure volumes so container storage can easily be backed up and restored
+- TODO: Make cert management configurable (may be easier to use [cert-manager](https://cert-manager.io/) in k8s environments)
+
 ## Deploying your own chatmail server 
 
 To deploy chatmail on your own server, you must have set-up ssh authentication and need to use an ed25519 key, due to an [upstream bug in paramiko](https://github.com/paramiko/paramiko/issues/2191). You also need to add your private key to the local ssh-agent, because you can't type in your password during deployment.

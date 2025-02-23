@@ -67,12 +67,14 @@ def run_cmd_options(parser):
 
 def run_cmd(args, out):
     """Deploy chatmail services on the remote server."""
-
-    sshexec = args.get_sshexec()
+    
     require_iroh = args.config.enable_iroh_relay
-    remote_data = dns.get_initial_remote_data(sshexec, args.config.mail_domain)
-    if not dns.check_initial_remote_data(remote_data, print=out.red):
-        return 1
+
+    if not os.environ.get("CMDEPLOY_LOCAL_BUILD"):
+        sshexec = args.get_sshexec()
+        remote_data = dns.get_initial_remote_data(sshexec, args.config.mail_domain)
+        if not dns.check_initial_remote_data(remote_data, print=out.red):
+            return 1
 
     env = os.environ.copy()
     env["CHATMAIL_INI"] = args.inipath
@@ -81,7 +83,12 @@ def run_cmd(args, out):
     deploy_path = importlib.resources.files(__package__).joinpath("deploy.py").resolve()
     pyinf = "pyinfra --dry" if args.dry_run else "pyinfra"
     ssh_host = args.config.mail_domain if not args.ssh_host else args.ssh_host
-    cmd = f"{pyinf} --ssh-user root {ssh_host} {deploy_path} -y"
+
+    if os.environ.get("CMDEPLOY_LOCAL_BUILD"):
+        cmd = f"{pyinf} --data _ignore_errors=True --data _continue_on_error=True @local {deploy_path} -y"
+    else:
+        cmd = f"{pyinf} --ssh-user root {ssh_host} {deploy_path} -y"
+
     if version.parse(pyinfra.__version__) < version.parse("3"):
         out.red("Please re-run scripts/initenv.sh to update pyinfra to version 3.")
         return 1

@@ -26,8 +26,15 @@ COPY . /app
 # Add venv/bin to PATH
 ENV PATH="/app/venv/bin:${PATH}"
 
+# Configure cmdeploy to target local system
+ENV CMDEPLOY_LOCAL_BUILD="True"
+
 # Run the initialization script
 RUN scripts/initenv.sh
+
+# Patch systemd
+ADD https://github.com/gdraheim/docker-systemctl-replacement/raw/refs/heads/master/files/docker/systemctl3.py /usr/bin/systemctl
+RUN chmod 755 /usr/bin/systemctl
 
 # Run formatting checks
 RUN cmdeploy fmt -v
@@ -39,7 +46,7 @@ RUN pytest --pyargs cmdeploy
 RUN cmdeploy init chat.localhost
 
 # Run the deployment (likely will fail need to adjust for container)
-RUN cmdeploy run --verbose
+RUN cmdeploy run --verbose || true
 
 # Default command to run the container (need to flip to start systemd)
-CMD ["tail", "-f", "/dev/null"]
+CMD ["bash"]
